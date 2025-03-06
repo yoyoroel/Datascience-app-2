@@ -4,8 +4,9 @@ import plotly.express as px
 
 # Lees de CSV in
 def load_video_data():
-    df = pd.read_csv('youtube.csv')  # Zorg ervoor dat het bestand op de juiste locatie staat
+    df = pd.read_csv('youtube.csv', index_col = 0)
     df["country"] = df["region_code"].map(country_dict)
+    df = df.drop(columns=["Unnamed: 0"])
     return df
 
 country_dict = {
@@ -250,8 +251,11 @@ country_dict = {
 
 # Functie voor de "Overview" pagina
 def overview():
-    st.title("Overview - Top 10 Video's")
-    st.write("Dit is een overzichtspagina met de top 10 video's op basis van hun frequentie.")
+    st.title("Youtube Trending top 50 per land")
+    st.write("Dit dashboard is gebaseerd  op data verkregen via de openbare Youtube API.\n De data is opgehaald door een API key aan te maken en te gebruiken en vervolgens per land de trending top 50 video's op te halen.\n De landen waarvan geen data beschikbaar was gaf een foutmelding. Vervolgens zijn er nieuwe kolommen toegevoegd om de data beter te kunnen verwerken.")
+    st.write("Via het menu links kan van pagina worden gewisseld. De gehele dataset kan worden bekeken bij Alle landen, per continent bij continent en ook kan per land de top 50 worden bekeken. \n In de overview pagina hieronder staan wat algemene visualisaties")
+    st.subheader("Overview - Top 10 Video's")
+    st.write("Dit is een overzichtspagina met de top 10 video's die wereldwijd het meeste voorkwamen in de trending top 50 lijsten per land.")
     
     df = load_video_data()
 
@@ -270,6 +274,7 @@ def overview():
     st.write(top_10_videos_info_sorted[['title', 'channel_title', 'count']])
 
     st.subheader("📊 Interactieve scatterplot")
+    st.write("De onderstaande scatterplot toont de relatie tussen het aantal views op de x as en vervolgens kan er worden gekozen om de relatie te zien met likes, comments, en abonnees. Ook kan de trendlijn worden aan- en uitgezet. Om de relatie beter zichtbaar te maken is er gekozen om de schaal logaritmisch te maken.")
 
     y_axis_option = st.radio(
         "📈 Selecteer de Y-as:",
@@ -277,6 +282,8 @@ def overview():
         format_func=lambda x: {"likes": "Likes", "comment_count": "Comments", "subscribers": "Abonnees"}[x],
         index=0
     )
+
+    show_trendline = st.checkbox("Toon OLS Trendlijn", value=True)
 
     youtube = df.copy()
 
@@ -296,7 +303,7 @@ def overview():
             title=f"Views vs {y_axis_option.capitalize()} per Continent",
             log_x=True,
             log_y=True,
-            #trendline="ols",
+            trendline="ols" if show_trendline else None, 
             trendline_color_override="black",
             hover_data={"title":True, "category_name":True,"country":True,"rank_in_region":True}
         )
@@ -304,6 +311,7 @@ def overview():
 
     # Toevoegen van de boxplot voor videolengte per continent
     st.subheader("📊 Boxplot van Videolengte per Continent")
+    st.write("Onderstaande boxplot geeft de lengte van trending video's weer per continent. Meer informatie uit de boxplot kan worden is beschikbaar door met de muis op de vbetreffende boxplot te staan. Continenten uit de boxplot halen kan door op het betreffende continent in de legenda te klikken.")
 
     color_sequence = px.colors.qualitative.Plotly
     fig = px.box(youtube,
@@ -322,12 +330,13 @@ def overview():
 
     # Toevoegen van de top 5 categorieën per continent
     st.subheader("📊 Top 5 Categorieën per Continent")
+    st.write("De barplot hieronder geeft per continent de top 5 categoriën weer het vaakst voorkomen in de trending video's. Via de slider kan er een continent worden gekozen.")
 
     # Unieke continenten ophalen en sorteren
     continent_options = sorted(df["continent"].unique().tolist())
 
     # Toon de naam van het geselecteerde continent
-    selected_continent = st.select_slider("Selecteer een continent:", options=continent_options, label_visibility = "collapsed")
+    selected_continent = st.select_slider("Selecteer een continent:", options=continent_options)
 
 
     # Data filteren op het geselecteerde continent
@@ -358,9 +367,22 @@ def overview():
     st.plotly_chart(category_fig)
         
 
-#toevoegen scatterplot views en video lengte
+# Toevoegen scatterplot views en video lengte
+    st.subheader("Scatterplot views vs lengte van de video")
+    st.write("De scatterplot geeft de relatie weer tussen het aantal views van een video en de lengte. De kleuren zijn verschillend per continent. Een continent uit de scatterplot halen kan door deze in de legenda aan te klikken. Met de muis op een bepaald punt in de scatterplot staan geeft meer informatie over het betreffende punt. Vis de slider kan worden gefilterd op lengte van de video in minuten.")
     youtube = df.copy()
-    
+
+    # Voeg sliders toe voor het filteren van de duur in minuten
+    min_duration, max_duration = st.slider(
+        "Selecteer de duur in minuten:",
+        min_value=float(youtube["duration_in_minutes"].min()),
+        max_value=float(youtube["duration_in_minutes"].max()),
+        value=(float(youtube["duration_in_minutes"].min()), float(youtube["duration_in_minutes"].max()))
+    )
+
+    # Filter de data op basis van de geselecteerde duur
+    youtube = youtube[(youtube["duration_in_minutes"] >= min_duration) & (youtube["duration_in_minutes"] <= max_duration)]
+
     continents = youtube["continent"].unique()
     continent_colors = {continent: i for i, continent in enumerate(continents)}
     youtube["continent_color"] = youtube["continent"].map(continent_colors)
@@ -377,9 +399,7 @@ def overview():
             title=f"Views vs lengte van video per Continent",
             log_x=True,
             log_y=True,
-            #trendline="ols",
-            #trendline_color_override="black",
-            hover_data={"title":True, "category_name":True,"country":True,"rank_in_region":True}
+            hover_data={"title": True, "category_name": True, "country": True, "rank_in_region": True}
         )
         st.plotly_chart(scatter_fig)
 
@@ -394,6 +414,7 @@ def overview():
 
     # Streamlit UI
     st.title("Interactieve Ranking Analyse")
+    st.write("Deze barplot geeft per categorie aan hoe vaak een video categorie waar in de ranking is voorgekomen. Via het drop down menu kan er een video categorie worden gekozen. ")
     st.write("Selecteer een categorie om de verdeling van rankings te bekijken.")
 
     # Dropdown-menu voor categorieën
@@ -411,6 +432,8 @@ def overview():
         y='Aantal',
         labels={'rank_group': 'Ranking Groepen', 'Aantal': 'Aantal Voorkomen'},
         title=f'Aantal Voorkomen van Categorie {selected_category} per Ranking Groep',
+        color='rank_group',
+        color_discrete_sequence=px.colors.qualitative.Plotly,
         text_auto=True,
         )
 
@@ -419,6 +442,7 @@ def overview():
 # Functie voor de "Per continent" pagina
 def per_continent():
     st.title("Per Continent - Selecteer Continent")
+    st.write("De dataset hieronder laat van alle landen in het geselecteerde continent de top 50 trending video's zien. Via de per land pagina kan ook worden gefilterd op landen.")
     df = load_video_data()
     Inputcontinent = st.sidebar.selectbox("Selecteer een continent", ("Europe", "Africa", "South America", "North America", "Oceania", "Asia"))
     youtubeselect = df[df["continent"] == Inputcontinent]
@@ -427,17 +451,68 @@ def per_continent():
 # Functie voor de "Per land" pagina
 def per_land():
     st.title("Per Land - Selecteer een land")
+    st.write("Op deze pagina kan er worden gefilterd per land.")
     df = load_video_data()
+    
+    # Selecteer een continent en land
     Inputcontinent = st.sidebar.selectbox("Selecteer een continent", ("Europe", "Africa", "South America", "North America", "Oceania", "Asia"))
     youtubeselect = df[df["continent"] == Inputcontinent]
     landen_in_continent = youtubeselect["country"].unique()
     Inputland = st.sidebar.selectbox("Selecteer een land", landen_in_continent)
+    
+    # Filter de data op geselecteerd land
     youtubeselect_land = youtubeselect[youtubeselect["country"] == Inputland]
-    st.dataframe(youtubeselect_land)
+    
+    # Haal de top 50 video's op basis van 'rank_in_region'
+    top_50_videos = youtubeselect_land[['video_id', 'title',"published_at","channel_title","views","likes","comment_count","subscribers","duration","category_name","country", 'rank_in_region']].drop_duplicates()
+    top_50_videos = top_50_videos.sort_values(by='rank_in_region').head(50)
+
+    # Haal de top 3 video's op voor de grafiek
+    top_3_videos = top_50_videos.head(3).copy()
+    
+    # Pas de x-as positie en hoogte aan voor de top 3
+    top_3_videos['rank_position'] = top_3_videos['rank_in_region'].map({1: 2, 2: 1, 3: 3})
+    top_3_videos['height'] = top_3_videos['rank_in_region'].map({1: 3, 2: 2, 3: 1})
+    
+    # Maak de bar chart
+    fig = px.bar(
+        top_3_videos,
+        x='rank_position',
+        y='height',
+        labels={'height': 'Ranking van Video'},
+        title=f"Top 3 Video's in {Inputland}",
+        color='rank_position',
+        color_discrete_sequence=px.colors.qualitative.Plotly,
+        text_auto=False,
+    )
+
+    fig.update_layout(
+        xaxis=dict(
+            tickvals=[1, 2, 3],
+            ticktext=top_3_videos.sort_values(by='rank_position')['title'],
+            tickangle=45
+        ),
+        yaxis=dict(showticklabels=False),
+        showlegend=False
+    )
+
+    fig.update_traces(textfont_size=24)
+    
+    # Toon de grafiek en dataframes
+    st.subheader("Top 50 Video's")
+    st.write("De dataset hieronder geeft per land de top 50 van de trending video's weer. Via het menu links kan er per continent een land worden gekozen. ")
+    st.dataframe(top_50_videos)
+    
+    st.subheader("Top 3 Video's")
+    st.write("De dataset hieronder geeft alleen de top 3 per land weer. De barplot laat de titels van de drie populairste video's in een land zien dor middel van een podium vorm.")
+    st.dataframe(top_3_videos)
+
+    st.plotly_chart(fig)
 
 # Functie voor de "Alle landen" pagina
 def alle_landen():
     st.title("Alle Landen - Data Overzicht")
+    st.write("Op deze pagina staat de gehele dataset die beschikbaar is")
     df = load_video_data()
     st.dataframe(df)
 
