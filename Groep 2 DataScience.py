@@ -363,6 +363,9 @@ def overview():
         color_discrete_sequence=px.colors.qualitative.Plotly,
     )
 
+    # Zorg ervoor dat de y-as schaal consistent blijft
+    category_fig.update_yaxes(range=[0, 40])
+
     # Grafiek weergeven
     st.plotly_chart(category_fig)
         
