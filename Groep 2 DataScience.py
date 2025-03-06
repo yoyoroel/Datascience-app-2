@@ -361,10 +361,8 @@ def overview():
         title=f"Top 5 Categorieën in {selected_continent}",
         labels={"category_name": "Categorie", "percentage": "Percentage van het totaal"},
         color_discrete_sequence=px.colors.qualitative.Plotly,
+        range_y=[0,40]
     )
-
-    # Zorg ervoor dat de y-as schaal consistent blijft
-    category_fig.update_yaxes(range=[0, 40])
 
     # Grafiek weergeven
     st.plotly_chart(category_fig)
