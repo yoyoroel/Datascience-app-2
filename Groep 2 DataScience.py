@@ -477,7 +477,7 @@ def per_land():
     # Maak de bar chart
     fig = px.bar(
         top_3_videos,
-        x='Top_3',
+        x='rank_position',
         y='height',
         labels={'height': 'Ranking van Video'},
         title=f"Top 3 Video's in {Inputland}",
