@@ -481,7 +481,7 @@ def per_land():
         y='height',
         labels={'height': 'Ranking van Video'},
         title=f"Top 3 Video's in {Inputland}",
-        color='rank_position',
+        color='Top 3',
         color_discrete_sequence=px.colors.qualitative.Plotly,
         text_auto=False,
     )
