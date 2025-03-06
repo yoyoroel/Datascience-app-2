@@ -364,6 +364,9 @@ def overview():
         range_y=[0,40]
     )
 
+    # Zorg ervoor dat de y-as schaal consistent blijft
+    #category_fig.update_yaxes(range=[0, 40])
+
     # Grafiek weergeven
     st.plotly_chart(category_fig)
         
@@ -478,7 +481,7 @@ def per_land():
     # Maak de bar chart
     fig = px.bar(
         top_3_videos,
-        x='rank_position',
+        x='',
         y='height',
         labels={'height': 'Ranking van Video'},
         title=f"Top 3 Video's in {Inputland}",
