@@ -1,3 +1,10 @@
+import pandas as pd
+import numpy as np
+import streamlit as st
+import plotly.express as px
+import folium
+pd.set_option('display.max_columns', None)
+
 #data import
 flightdata1 = pd.read_excel('30Flight 1.xlsx')
 flightdata2 = pd.read_excel('30Flight 2.xlsx')
