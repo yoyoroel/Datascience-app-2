@@ -1,3 +1,4 @@
+#!pip install folium
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -6,13 +7,13 @@ import folium
 pd.set_option('display.max_columns', None)
 
 #data import
-flightdata1 = pd.read_excel('30Flight 1.xlsx')
-flightdata2 = pd.read_excel('30Flight 2.xlsx')
-flightdata3 = pd.read_excel('30Flight 3.xlsx')
-flightdata4 = pd.read_excel('30Flight 4.xlsx')
-flightdata5 = pd.read_excel('30Flight 5.xlsx')
-flightdata6 = pd.read_excel('30Flight 6.xlsx')
-flightdata7 = pd.read_excel('30Flight 7.xlsx')
+flightdata1 = pd.read_excel('case3/30Flight 1.xlsx')
+flightdata2 = pd.read_excel('case3/30Flight 2.xlsx')
+flightdata3 = pd.read_excel('case3/30Flight 3.xlsx')
+flightdata4 = pd.read_excel('case3/30Flight 4.xlsx')
+flightdata5 = pd.read_excel('case3/30Flight 5.xlsx')
+flightdata6 = pd.read_excel('case3/30Flight 6.xlsx')
+flightdata7 = pd.read_excel('case3/30Flight 7.xlsx')
 
 #kleur voor de hoogte
 def flkleur(hoogte):
